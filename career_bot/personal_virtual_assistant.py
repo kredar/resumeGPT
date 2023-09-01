@@ -5,19 +5,21 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.vectorstores import FAISS
-from langchain.vectorstores import Chroma
-from langchain.prompts import PromptTemplate
+# from langchain.vectorstores import Chroma
+# from langchain.prompts import PromptTemplate
 from langchain.prompts import load_prompt
 
 
 if "OPENAI_API_KEY" in os.environ:
     openai_api_key = os.getenv("OPENAI_API_KEY")
+
+else: openai_api_key = st.secrets["OPENAI_API_KEY"]
     
-else:
-    openai_api_key = st.sidebar.text_input(
-        label="#### Your OpenAI API key 👇",
-        placeholder="Paste your openAI API key, sk-",
-        type="password")
+# else:
+#     openai_api_key = st.sidebar.text_input(
+#         label="#### Your OpenAI API key 👇",
+#         placeholder="Paste your openAI API key, sk-",
+#         type="password")
     
 
 #Creating Streamlit title and adding additional information about the bot
