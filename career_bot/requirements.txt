@@ -1,0 +1,6 @@
+streamlit
+openai
+langchain
+faiss
+tiktoker
+pandas
