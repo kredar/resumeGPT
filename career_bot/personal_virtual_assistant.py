@@ -59,7 +59,8 @@ if data_source :
 def conversational_chat(query):
     
     # Be conversational and ask a follow up questions to keep the conversation going"
-    result = chain({"system": "You are a CareerBot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
+    result = chain({"system": 
+    "You are a CareerBot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
                     "question": query, 
                     "chat_history": st.session_state['history']})
     st.session_state['history'].append((query, result["answer"]))
@@ -83,7 +84,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("I'm a CareerBot. Ask me about Art's background, his skills, education and expertise."):
+if prompt := st.chat_input("Hi, I'm CareerBot. Ask me about Art's skills, background, or education!"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         
