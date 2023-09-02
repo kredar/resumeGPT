@@ -27,15 +27,18 @@ st.title("Art Kreimer's resumer VA")
 with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
+path = os.path.dirname(__file__)
+#my_file = path+'/photo.png'
+
 # Loading prompt to query openai
-prompt = load_prompt("./templates/template1.json")
+prompt = load_prompt(path+"/templates/template1.json")
 #prompt = template.format(input_parameter=user_input)
 
 # loading embedings
-faiss_index = "./faiss_index"
+faiss_index = path+"/faiss_index"
 
 # Loading CSV file
-data_source = "./data/about_art_chatbot_data.csv"
+data_source = path+"/data/about_art_chatbot_data.csv"
 
 # Creating embeddings for the docs
 if data_source :
