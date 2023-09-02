@@ -5,40 +5,32 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.vectorstores import FAISS
-# from langchain.vectorstores import Chroma
-# from langchain.prompts import PromptTemplate
 from langchain.prompts import load_prompt
 
 
-if "OPENAI_API_KEY" in os.environ:
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-
-else: openai_api_key = st.secrets["OPENAI_API_KEY"]
-    
-# else:
-#     openai_api_key = st.sidebar.text_input(
-#         label="#### Your OpenAI API key 👇",
-#         placeholder="Paste your openAI API key, sk-",
-#         type="password")
-    
 
 #Creating Streamlit title and adding additional information about the bot
-st.title("Art Kreimer's resume bot")
+st.title("Art Kreimer's resumer VA")
 with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
-path = os.path.dirname(__file__)
-#my_file = path+'/photo.png'
-
 # Loading prompt to query openai
-prompt = load_prompt(path+"/templates/template1.json")
+prompt = load_prompt("/Users/artiom/Documents/python_projects/git/data_analytics/personal_va/templates/template1.json")
 #prompt = template.format(input_parameter=user_input)
 
 # loading embedings
-faiss_index = path+"/faiss_index"
+faiss_index = "/Users/artiom/Documents/python_projects/git/data_analytics/personal_va/faiss_index"
 
 # Loading CSV file
-data_source = path+"/data/about_art_chatbot_data.csv"
+st.sidebar.file_uploader("upload", type="csv")
+data_source = "/Users/artiom/Documents/python_projects/git/data_analytics/personal_va/data/about_art_chatbot_data.csv"
+
+openai_api_key = st.sidebar.text_input(
+    label="#### Your OpenAI API key 👇",
+    placeholder="Paste your openAI API key, sk-",
+    type="password")
+
+uploaded_file = st.sidebar.file_uploader("upload", type="csv")
 
 # Creating embeddings for the docs
 if data_source :
@@ -62,8 +54,7 @@ if data_source :
 def conversational_chat(query):
     
     # Be conversational and ask a follow up questions to keep the conversation going"
-    result = chain({"system": 
-    "You are a CareerBot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
+    result = chain({"system": "You are a CareerBot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
                     "question": query, 
                     "chat_history": st.session_state['history']})
     st.session_state['history'].append((query, result["answer"]))
@@ -87,7 +78,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Hi, I'm CareerBot. Ask me about Art's skills, background, or education!"):
+if prompt := st.chat_input("I'm a CareerBot. Ask me about Art's background, his skills, education and expertise."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         
