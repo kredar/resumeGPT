@@ -25,12 +25,12 @@ else: mongodB_pass = st.secrets["mongodB_pass"]
 #HUTta2fUrfqSb2C
 # Setting up a mongo_db connection to store conversations for deeper analysis
 uri = "mongodb+srv://dbUser:"+mongodB_pass+"@cluster0.wjuga1v.mongodb.net/?retryWrites=true&w=majority"
-client = MongoClient(uri, server_api=ServerApi('1'))
-try:
-    client.admin.command('ping')
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(e)
+
+@st.cache_resource
+def init_connection():
+    return MongoClient(uri, server_api=ServerApi('1'))
+client = init_connection()
+
 
 db = client['conversations_db']
 conversations_collection = db['conversations']
