@@ -3,3 +3,4 @@ langchain
 tiktoken
 pandas
 faiss-gpu
+pymongo
