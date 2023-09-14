@@ -8,11 +8,36 @@ from langchain.vectorstores import FAISS
 # from langchain.vectorstores import Chroma
 # from langchain.prompts import PromptTemplate
 from langchain.prompts import load_prompt
+from streamlit import session_state as ss
+from pymongo import MongoClient
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+import uuid
+
+import datetime
+
+
+
+
+if "mongodB_pass" in os.environ:
+    mongodB_pass = os.getenv("mongodB_pass")
+else: mongodB_pass = st.secrets["mongodB_pass"]
+#HUTta2fUrfqSb2C
+# Setting up a mongo_db connection to store conversations for deeper analysis
+uri = "mongodb+srv://dbUser:"+mongodB_pass+"@cluster0.wjuga1v.mongodb.net/?retryWrites=true&w=majority"
+client = MongoClient(uri, server_api=ServerApi('1'))
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+
+db = client['conversations_db']
+conversations_collection = db['conversations']
 
 
 if "OPENAI_API_KEY" in os.environ:
     openai_api_key = os.getenv("OPENAI_API_KEY")
-
 else: openai_api_key = st.secrets["OPENAI_API_KEY"]
     
 # else:
@@ -38,11 +63,23 @@ prompt = load_prompt(path+"/templates/template1.json")
 faiss_index = path+"/faiss_index"
 
 # Loading CSV file
-data_source = path+"/data/about_art_chatbot_data.csv"
+data_source = path+"/data/about_art_chatbot_data_v3.csv"
+
+# Function to store conversation
+def store_conversation(conversation_id, user_message, bot_message):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    data = {
+        "conversation_id": conversation_id,
+        "timestamp": timestamp,
+        "user_message": user_message,
+        "bot_message": bot_message
+    }
+    conversations_collection.insert_one(data)
 
 # Creating embeddings for the docs
 if data_source :
     loader = CSVLoader(file_path=data_source, encoding="utf-8")
+    #loader.
     data = loader.load()
     embeddings = OpenAIEmbeddings()
    
@@ -52,7 +89,7 @@ if data_source :
     else:
         vectors = FAISS.from_documents(data, embeddings)
         vectors.save_local("faiss_index")
-    retriever=vectors.as_retriever()
+    retriever=vectors.as_retriever(search_type="similarity", search_kwargs={"k":4, "include_metadata":True, "score_threshold":0.5})
     #Creating langchain retreval chain 
     chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo', openai_api_key=openai_api_key), 
                                                   retriever=retriever,return_source_documents=True,verbose=True,chain_type="stuff",
@@ -63,16 +100,20 @@ def conversational_chat(query):
     
     # Be conversational and ask a follow up questions to keep the conversation going"
     result = chain({"system": 
-    "You are a CareerBot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
+    "You are a Resume Bot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
                     "question": query, 
                     "chat_history": st.session_state['history']})
     st.session_state['history'].append((query, result["answer"]))
     
     if 'I am tuned to only answer questions' in result['answer']:
+        store_conversation(st.session_state["uuid"], query, result["answer"])
         return(result["answer"])
-    else: return(result["answer"])
+    else: 
+        store_conversation(st.session_state["uuid"], query, result["answer"])
+        return(result["answer"])
 
-
+if "uuid" not in st.session_state:
+    st.session_state["uuid"] = str(uuid.uuid4())
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
@@ -87,7 +128,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Hi, I'm CareerBot. Ask me about Art's skills, background, or education!"):
+if prompt := st.chat_input("Ask me about Art's skills, background, or education!"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         
