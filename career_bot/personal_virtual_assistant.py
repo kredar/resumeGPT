@@ -53,10 +53,11 @@ with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
 path = os.path.dirname(__file__)
-#my_file = path+'/photo.png'
+
 
 # Loading prompt to query openai
-prompt = load_prompt(path+"/templates/template1.json")
+prompt_template = path+"/templates/template2.json"
+prompt = load_prompt(prompt_template)
 #prompt = template.format(input_parameter=user_input)
 
 # loading embedings
@@ -76,24 +77,26 @@ def store_conversation(conversation_id, user_message, bot_message):
     }
     conversations_collection.insert_one(data)
 
-# Creating embeddings for the docs
-if data_source :
-    loader = CSVLoader(file_path=data_source, encoding="utf-8")
-    #loader.
-    data = loader.load()
-    embeddings = OpenAIEmbeddings()
-   
-    #using FAISS as a vector DB
-    if os.path.exists(faiss_index):
+embeddings = OpenAIEmbeddings()
+
+#using FAISS as a vector DB
+if os.path.exists(faiss_index):
         vectors = FAISS.load_local(faiss_index, embeddings)
-    else:
+    
+else:
+    # Creating embeddings for the docs
+    if data_source :
+        loader = CSVLoader(file_path=data_source, encoding="utf-8")
+        #loader.
+        data = loader.load()
         vectors = FAISS.from_documents(data, embeddings)
         vectors.save_local("faiss_index")
-    retriever=vectors.as_retriever(search_type="similarity", search_kwargs={"k":4, "include_metadata":True, "score_threshold":0.5})
-    #Creating langchain retreval chain 
-    chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo', openai_api_key=openai_api_key), 
-                                                  retriever=retriever,return_source_documents=True,verbose=True,chain_type="stuff",
-                                                  max_tokens_limit=4097, combine_docs_chain_kwargs={"prompt": prompt})
+
+retriever=vectors.as_retriever(search_type="similarity", search_kwargs={"k":6, "include_metadata":True, "score_threshold":0.6})
+#Creating langchain retreval chain 
+chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo', openai_api_key=openai_api_key), 
+                                                retriever=retriever,return_source_documents=True,verbose=True,chain_type="stuff",
+                                                max_tokens_limit=4097, combine_docs_chain_kwargs={"prompt": prompt})
 
 
 def conversational_chat(query):
