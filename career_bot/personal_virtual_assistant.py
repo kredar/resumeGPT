@@ -13,10 +13,16 @@ from pymongo import MongoClient
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import uuid
+import json
 
 import datetime
 
-
+def is_valid_json(data):
+    try:
+        json.loads(data)
+        return True
+    except json.JSONDecodeError:
+        return False
 
 
 if "mongodB_pass" in os.environ:
@@ -56,7 +62,7 @@ path = os.path.dirname(__file__)
 
 
 # Loading prompt to query openai
-prompt_template = path+"/templates/template2.json"
+prompt_template = path+"/templates/template4.json"
 prompt = load_prompt(prompt_template)
 #prompt = template.format(input_parameter=user_input)
 
@@ -67,13 +73,14 @@ faiss_index = path+"/faiss_index"
 data_source = path+"/data/about_art_chatbot_data_v3.csv"
 
 # Function to store conversation
-def store_conversation(conversation_id, user_message, bot_message):
+def store_conversation(conversation_id, user_message, bot_message, answered):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data = {
         "conversation_id": conversation_id,
         "timestamp": timestamp,
         "user_message": user_message,
-        "bot_message": bot_message
+        "bot_message": bot_message,
+        "answered": answered
     }
     conversations_collection.insert_one(data)
 
@@ -106,14 +113,30 @@ def conversational_chat(query):
     "You are a Resume Bot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
                     "question": query, 
                     "chat_history": st.session_state['history']})
-    st.session_state['history'].append((query, result["answer"]))
+    if (is_valid_json(result["answer"])):              
+        data = json.loads(result["answer"])
+    else:
+        data = json.loads('{"answered":"False", "response":"Hmm... Something is not right. I\'m experiencing technical difficulties. Try asking your question again or ask another question about Art Kreimer\'s professional background and qualifications. Thank you for your understanding.", "questions":["What is Art\'s professional experience?","What projects has Art worked on?","What are Art\'s career goals?"]}')
+    # Access data fields
+    answered = data.get("answered")
+    response = data.get("response")
+    questions = data.get("questions")
+
+    full_response="--"
+
+    st.session_state['history'].append((query, response))
     
-    if 'I am tuned to only answer questions' in result['answer']:
-        store_conversation(st.session_state["uuid"], query, result["answer"])
-        return(result["answer"])
+    if ('I am tuned to only answer questions' in response) or (response == ""):
+        full_response = """Unfortunately, I can't answer this question. My capabilities are limited to providing information about Art Kreimer's professional background and qualifications. If you have other inquiries, I recommend reaching out to Art on [LinkedIn](https://www.linkedin.com/in/artkreimer/). I can answer questions like: \n - What is Art Kreimer's educational background? \n - Can you list Art Kreimer's professional experience? \n - What skills does Art Kreimer possess? \n"""
+        store_conversation(st.session_state["uuid"], query, full_response, answered)
+        
     else: 
-        store_conversation(st.session_state["uuid"], query, result["answer"])
-        return(result["answer"])
+        markdown_list = ""
+        for item in questions:
+            markdown_list += f"- {item}\n"
+        full_response = response + "\n\n What else would you like to know about Art? You can ask me: \n" + markdown_list
+        store_conversation(st.session_state["uuid"], query, full_response, answered)
+    return(full_response)
 
 if "uuid" not in st.session_state:
     st.session_state["uuid"] = str(uuid.uuid4())
@@ -131,7 +154,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-if prompt := st.chat_input("Ask me about Art's skills, background, or education!"):
+if prompt := st.chat_input("Ask me about Art Kreimer"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         
