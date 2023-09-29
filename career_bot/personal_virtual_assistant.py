@@ -119,7 +119,7 @@ def conversational_chat(query):
     if (is_valid_json(result["answer"])):              
         data = json.loads(result["answer"])
     else:
-        data = json.loads('{"answered":"False", "response":"Hmm... Something is not right. I\'m experiencing technical difficulties. Try asking your question again or ask another question about Art Kreimer\'s professional background and qualifications. Thank you for your understanding.", "questions":["What is Art\'s professional experience?","What projects has Art worked on?","What are Art\'s career goals?"]}')
+        data = json.loads('{"answered":"false", "response":"Hmm... Something is not right. I\'m experiencing technical difficulties. Try asking your question again or ask another question about Art Kreimer\'s professional background and qualifications. Thank you for your understanding.", "questions":["What is Art\'s professional experience?","What projects has Art worked on?","What are Art\'s career goals?"]}')
     # Access data fields
     answered = data.get("answered")
     response = data.get("response")
