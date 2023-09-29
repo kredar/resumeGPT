@@ -14,6 +14,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import uuid
 import json
+import time
 
 import datetime
 
@@ -107,12 +108,14 @@ chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,m
 
 
 def conversational_chat(query):
+    with st.spinner("Thinking..."):
+        # time.sleep(1)
+        # Be conversational and ask a follow up questions to keep the conversation going"
+        result = chain({"system": 
+        "You are a Resume Bot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
+                        "question": query, 
+                        "chat_history": st.session_state['history']})
     
-    # Be conversational and ask a follow up questions to keep the conversation going"
-    result = chain({"system": 
-    "You are a Resume Bot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
-                    "question": query, 
-                    "chat_history": st.session_state['history']})
     if (is_valid_json(result["answer"])):              
         data = json.loads(result["answer"])
     else:
