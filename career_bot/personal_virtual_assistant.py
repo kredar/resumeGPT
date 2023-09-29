@@ -149,6 +149,20 @@ if "openai_model" not in st.session_state:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+
+        welcome_message = """
+            Welcome! I'm **Resume Bot**, specialized in providing information about Art Kreimer's professional background and qualifications. Feel free to ask me questions such as:
+
+            - What is Art Kreimer's educational background?
+            - Can you outline Art Kreimer's professional experience?
+            - What skills and expertise does Art Kreimer bring to the table?
+
+            I'm here to assist you. What would you like to know?
+            """
+        message_placeholder.markdown(welcome_message)
+        
 
 if 'history' not in st.session_state:
     st.session_state['history'] = []
