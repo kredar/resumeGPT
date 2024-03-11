@@ -29,7 +29,6 @@ def is_valid_json(data):
 if "mongodB_pass" in os.environ:
     mongodB_pass = os.getenv("mongodB_pass")
 else: mongodB_pass = st.secrets["mongodB_pass"]
-#HUTta2fUrfqSb2C
 # Setting up a mongo_db connection to store conversations for deeper analysis
 uri = "mongodb+srv://dbUser:"+mongodB_pass+"@cluster0.wjuga1v.mongodb.net/?retryWrites=true&w=majority"
 
@@ -89,7 +88,7 @@ embeddings = OpenAIEmbeddings()
 
 #using FAISS as a vector DB
 if os.path.exists(faiss_index):
-        vectors = FAISS.load_local(faiss_index, embeddings)
+        vectors = FAISS.load_local(faiss_index, embeddings,allow_dangerous_deserialization=True)
     
 else:
     # Creating embeddings for the docs
