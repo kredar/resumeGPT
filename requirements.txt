@@ -3,5 +3,5 @@ langchain==0.1.16
 langchain-community==0.0.34
 tiktoken
 pandas
-faiss-gpu
+faiss-cpu==1.8.0
 pymongo
