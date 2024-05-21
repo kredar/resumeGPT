@@ -5,8 +5,6 @@ from langchain.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
 from langchain.document_loaders.csv_loader import CSVLoader
 from langchain.vectorstores import FAISS
-# from langchain.vectorstores import Chroma
-# from langchain.prompts import PromptTemplate
 from langchain.prompts import load_prompt
 from streamlit import session_state as ss
 from pymongo import MongoClient
@@ -46,15 +44,9 @@ if "OPENAI_API_KEY" in os.environ:
     openai_api_key = os.getenv("OPENAI_API_KEY")
 else: openai_api_key = st.secrets["OPENAI_API_KEY"]
     
-# else:
-#     openai_api_key = st.sidebar.text_input(
-#         label="#### Your OpenAI API key 👇",
-#         placeholder="Paste your openAI API key, sk-",
-#         type="password")
-    
 
 #Creating Streamlit title and adding additional information about the bot
-st.title("Art Kreimer's resume bot")
+st.title("Art Kreimer's resume GPT")
 with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
@@ -62,7 +54,7 @@ path = os.path.dirname(__file__)
 
 
 # Loading prompt to query openai
-prompt_template = path+"/templates/template4.json"
+prompt_template = path+"/templates/template.json"
 prompt = load_prompt(prompt_template)
 #prompt = template.format(input_parameter=user_input)
 
@@ -70,7 +62,7 @@ prompt = load_prompt(prompt_template)
 faiss_index = path+"/faiss_index"
 
 # Loading CSV file
-data_source = path+"/data/about_art_chatbot_data_v3.csv"
+data_source = path+"/data/about_me.csv"
 
 # Function to store conversation
 def store_conversation(conversation_id, user_message, bot_message, answered):
