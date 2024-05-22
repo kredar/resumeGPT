@@ -78,7 +78,7 @@ streamlit run app.py
 
 2. Click on the `New app` option:
 
-3. Input your `OPENAI_API_KEY`  using the **Advanced settings...** option
+3. Input your `OPENAI_API_KEY`  and `mongodB_pass` using the **Advanced settings...** option
 
 4. Click on **Deploy** button
 
