@@ -1,7 +1,7 @@
-openai
-langchain==0.1.16
-langchain-community==0.0.34
+openai==1.30.3
+langchain==0.2.1
+langchain-community==0.2.1
 tiktoken
 pandas
 faiss-cpu==1.8.0
-pymongo
+pymongo==4.6.2

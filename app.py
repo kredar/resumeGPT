@@ -1,10 +1,10 @@
 import os
 import streamlit as st
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chat_models import ChatOpenAI
+from langchain_community.chat_models import ChatOpenAI
 from langchain.chains import ConversationalRetrievalChain
-from langchain.document_loaders.csv_loader import CSVLoader
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
+from langchain_community.document_loaders import PyPDFLoader, CSVLoader
+from langchain_community.embeddings import OpenAIEmbeddings
 # from langchain.vectorstores import Chroma
 # from langchain.prompts import PromptTemplate
 from langchain.prompts import load_prompt
@@ -54,7 +54,7 @@ else: openai_api_key = st.secrets["OPENAI_API_KEY"]
     
 
 #Creating Streamlit title and adding additional information about the bot
-st.title("Art Kreimer's resume bot")
+st.title("Art Kreimer's resumeGPT")
 with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
@@ -71,6 +71,7 @@ faiss_index = path+"/faiss_index"
 
 # Loading CSV file
 data_source = path+"/data/about_me.csv"
+pdf_source = path+"/data/resume.pdf"
 
 # Function to store conversation
 def store_conversation(conversation_id, user_message, bot_message, answered):
@@ -89,13 +90,17 @@ embeddings = OpenAIEmbeddings()
 #using FAISS as a vector DB
 if os.path.exists(faiss_index):
         vectors = FAISS.load_local(faiss_index, embeddings,allow_dangerous_deserialization=True)
-    
 else:
     # Creating embeddings for the docs
-    if data_source :
-        loader = CSVLoader(file_path=data_source, encoding="utf-8")
+    if data_source:
+        # Load data from PDF and CSV sources
+        pdf_loader = PyPDFLoader(pdf_source)
+        pdf_data = pdf_loader.load_and_split()
+        print(pdf_data)
+        csv_loader = CSVLoader(file_path=data_source, encoding="utf-8")
         #loader.
-        data = loader.load()
+        csv_data = csv_loader.load()
+        data = pdf_data + csv_data
         vectors = FAISS.from_documents(data, embeddings)
         vectors.save_local("faiss_index")
 
@@ -152,7 +157,7 @@ if "messages" not in st.session_state:
         message_placeholder = st.empty()
 
         welcome_message = """
-            Welcome! I'm **Resume Bot**, specialized in providing information about Art Kreimer's professional background and qualifications. Feel free to ask me questions such as:
+            Welcome! I'm **Art's ResumeGPT**, specialized in providing information about Art Kreimer's professional background and qualifications. Feel free to ask me questions such as:
 
             - What is Art Kreimer's educational background?
             - Can you outline Art Kreimer's professional experience?
