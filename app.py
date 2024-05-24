@@ -116,7 +116,7 @@ def conversational_chat(query):
         # time.sleep(1)
         # Be conversational and ask a follow up questions to keep the conversation going"
         result = chain({"system": 
-        "You are a Resume Bot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
+        "You are a Art's ResumeGPT chatbot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.", 
                         "question": query, 
                         "chat_history": st.session_state['history']})
     
