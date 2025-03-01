@@ -1,23 +1,24 @@
 import os
 import streamlit as st
-from langchain_community.chat_models import ChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain_community.vectorstores import FAISS
+# Import LangChain components
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_core.prompts import load_prompt
 from langchain_community.document_loaders import PyPDFLoader, CSVLoader
-from langchain_community.embeddings import OpenAIEmbeddings
+from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain
+from langchain_community.vectorstores.faiss import FAISS
 # from langchain.vectorstores import Chroma
 # from langchain.prompts import PromptTemplate
-from langchain.prompts import load_prompt
 from streamlit import session_state as ss
+# MongoDB imports for conversation storage
 from pymongo import MongoClient
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 import uuid
 import json
 import time
-
 import datetime
 
+# Utility function to validate JSON responses
 def is_valid_json(data):
     try:
         json.loads(data)
@@ -25,23 +26,25 @@ def is_valid_json(data):
     except json.JSONDecodeError:
         return False
 
-
+# Get MongoDB credentials from environment or secrets
 if "mongodB_pass" in os.environ:
     mongodB_pass = os.getenv("mongodB_pass")
 else: mongodB_pass = st.secrets["mongodB_pass"]
-# Setting up a mongo_db connection to store conversations for deeper analysis
+
+# MongoDB connection string
 uri = "mongodb+srv://dbUser:"+mongodB_pass+"@cluster0.wjuga1v.mongodb.net/?retryWrites=true&w=majority"
 
+# Initialize MongoDB connection with caching
 @st.cache_resource
 def init_connection():
     return MongoClient(uri, server_api=ServerApi('1'))
 client = init_connection()
 
-
+# Set up database and collection
 db = client['conversations_db']
 conversations_collection = db['conversations']
 
-
+# Get OpenAI API key from environment or secrets
 if "OPENAI_API_KEY" in os.environ:
     openai_api_key = os.getenv("OPENAI_API_KEY")
 else: openai_api_key = st.secrets["OPENAI_API_KEY"]
@@ -58,8 +61,8 @@ st.title("Art Kreimer's resumeGPT")
 with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
+# Set up file paths
 path = os.path.dirname(__file__)
-
 
 # Loading prompt to query openai
 prompt_template = path+"/templates/template.json"
@@ -73,7 +76,7 @@ faiss_index = path+"/faiss_index"
 data_source = path+"/data/about_me.csv"
 pdf_source = path+"/data/resume.pdf"
 
-# Function to store conversation
+# Function to store conversation history in MongoDB
 def store_conversation(conversation_id, user_message, bot_message, answered):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data = {
@@ -85,6 +88,7 @@ def store_conversation(conversation_id, user_message, bot_message, answered):
     }
     conversations_collection.insert_one(data)
 
+# Initialize OpenAI embeddings
 embeddings = OpenAIEmbeddings()
 
 #using FAISS as a vector DB
@@ -106,11 +110,11 @@ else:
 
 retriever=vectors.as_retriever(search_type="similarity", search_kwargs={"k":6, "include_metadata":True, "score_threshold":0.6})
 #Creating langchain retreval chain 
-chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-3.5-turbo', openai_api_key=openai_api_key), 
+chain = ConversationalRetrievalChain.from_llm(llm = ChatOpenAI(temperature=0.0,model_name='gpt-4', openai_api_key=openai_api_key), 
                                                 retriever=retriever,return_source_documents=True,verbose=True,chain_type="stuff",
                                                 max_tokens_limit=4097, combine_docs_chain_kwargs={"prompt": prompt})
 
-
+# Main conversation function
 def conversational_chat(query):
     with st.spinner("Thinking..."):
         # time.sleep(1)
@@ -145,12 +149,14 @@ def conversational_chat(query):
         store_conversation(st.session_state["uuid"], query, full_response, answered)
     return(full_response)
 
+# Initialize session state variables
 if "uuid" not in st.session_state:
     st.session_state["uuid"] = str(uuid.uuid4())
 
 if "openai_model" not in st.session_state:
     st.session_state["openai_model"] = "gpt-3.5-turbo"
 
+# Initialize chat interface
 if "messages" not in st.session_state:
     st.session_state.messages = []
     with st.chat_message("assistant"):
@@ -171,10 +177,12 @@ if "messages" not in st.session_state:
 if 'history' not in st.session_state:
     st.session_state['history'] = []
 
+# Display chat history
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+# Handle new chat inputs
 if prompt := st.chat_input("Ask me about Art Kreimer"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
