@@ -197,5 +197,3 @@ if prompt := st.chat_input("Ask me about Art Kreimer"):
         full_response = conversational_chat(user_input)
         message_placeholder.markdown(full_response)
     st.session_state.messages.append({"role": "assistant", "content": full_response})
-
-print(f"langchain-openai version: {langchain_openai.__version__}")
