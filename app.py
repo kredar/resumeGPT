@@ -17,6 +17,7 @@ import uuid
 import json
 import time
 import datetime
+import langchain_openai
 
 # Utility function to validate JSON responses
 def is_valid_json(data):
@@ -196,3 +197,5 @@ if prompt := st.chat_input("Ask me about Art Kreimer"):
         full_response = conversational_chat(user_input)
         message_placeholder.markdown(full_response)
     st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+print(f"langchain-openai version: {langchain_openai.__version__}")
