@@ -164,7 +164,8 @@ if "messages" not in st.session_state:
         message_placeholder = st.empty()
 
         welcome_message = """
-            Welcome! I'm **Art's ResumeGPT**, specialized in providing information about Art Kreimer's professional background and qualifications. Feel free to ask me questions such as:
+            Welcome! I'm **Art's ResumeGPT**, specialized in providing information about Art Kreimer's professional background and qualifications. 
+            Feel free to ask me questions such as:
 
             - What is Art Kreimer's educational background?
             - Can you outline Art Kreimer's professional experience?
