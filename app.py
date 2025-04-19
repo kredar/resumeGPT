@@ -66,7 +66,7 @@ with st.expander("⚠️Disclaimer"):
 path = os.path.dirname(__file__)
 
 # Loading prompt to query openai
-prompt_template = path+"/templates/template.json"
+prompt_template = path+"/template.json"
 prompt = load_prompt(prompt_template)
 #prompt = template.format(input_parameter=user_input)
 
@@ -165,6 +165,7 @@ if "messages" not in st.session_state:
 
         welcome_message = """
             Welcome! I'm **Art's ResumeGPT**, specialized in providing information about Art Kreimer's professional background and qualifications. 
+            
             Feel free to ask me questions such as:
 
             - What is Art Kreimer's educational background?
