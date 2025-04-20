@@ -63,7 +63,9 @@ with st.expander("⚠️Disclaimer"):
     st.write("""This is a work in progress chatbot based on a large language model. It can answer questions about Art Kreimer""")
 
 # Set up file paths
-path = os.path.dirname(__file__)
+#path = os.path.dirname(__file__)
+path = os.getcwd()  # Current working directory
+filepath = os.path.join(path, "data", "resume.pdf")
 
 # Loading prompt to query openai
 prompt_template = "./template.json"
@@ -71,11 +73,15 @@ prompt = load_prompt(prompt_template)
 #prompt = template.format(input_parameter=user_input)
 
 # loading embedings
-faiss_index = path+"/faiss_index"
+#faiss_index = path+"/faiss_index"
+faiss_index = os.path.join(path,"faiss_index")
 
 # Loading CSV file
-data_source = path+"/data/about_me.csv"
-pdf_source = path+"/data/resume.pdf"
+# data_source = path+"/data/about_me.csv"
+# pdf_source = path+"/data/resume.pdf"
+
+pdf_source = os.path.join(path, "data", "resume.pdf")
+data_source = os.path.join(path, "data", "about_me.csv")
 
 # Function to store conversation history in MongoDB
 def store_conversation(conversation_id, user_message, bot_message, answered):
