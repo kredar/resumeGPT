@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')!;
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 
 const knowledgeBase = [
   {
@@ -91,6 +91,23 @@ serve(async (req: Request) => {
   }
 
   try {
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is not set');
+      return new Response(
+        JSON.stringify({
+          error: 'Configuration error',
+          answered: false,
+          response: "The chatbot is not fully configured. Please contact the administrator to set up the OpenAI API key.",
+          questions: [
+            "What is Art's professional experience?",
+            "What skills does Art possess?",
+            "How can I contact Art?"
+          ]
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { message, conversationHistory = [] } = await req.json();
 
     if (!message) {
@@ -128,8 +145,14 @@ serve(async (req: Request) => {
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
-      throw new Error('Failed to get response from OpenAI');
+      console.error('OpenAI API error:', response.status, error);
+
+      if (response.status === 401) {
+        throw new Error('Invalid OpenAI API key');
+      } else if (response.status === 429) {
+        throw new Error('OpenAI API rate limit exceeded');
+      }
+      throw new Error(`Failed to get response from OpenAI: ${response.status}`);
     }
 
     const data = await response.json();
@@ -156,8 +179,11 @@ serve(async (req: Request) => {
     );
   } catch (error) {
     console.error('Error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error details:', errorMessage);
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: 'Internal server error',
         answered: false,
         response: "I'm experiencing technical difficulties. Please try again later.",
