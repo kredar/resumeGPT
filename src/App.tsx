@@ -9,6 +9,7 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId] = useState(() => crypto.randomUUID())
+  const [previousResponseId, setPreviousResponseId] = useState<string | undefined>(undefined)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
     "What is Art Kreimer's educational background?",
     "Can you outline Art Kreimer's professional experience?",
@@ -65,10 +66,13 @@ I'm here to assist you. What would you like to know?`
     setIsLoading(true)
 
     try {
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }))
+      const requestBody: any = {
+        message: messageText
+      }
+
+      if (previousResponseId) {
+        requestBody.previousResponseId = previousResponseId
+      }
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`,
@@ -78,10 +82,7 @@ I'm here to assist you. What would you like to know?`
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({
-            message: messageText,
-            conversationHistory
-          })
+          body: JSON.stringify(requestBody)
         }
       )
 
@@ -90,6 +91,10 @@ I'm here to assist you. What would you like to know?`
       }
 
       const data: ChatResponse = await response.json()
+
+      if (data.responseId) {
+        setPreviousResponseId(data.responseId)
+      }
 
       let fullResponse = data.response
       if (!data.answered || data.response.includes("I am tuned to only answer questions")) {
