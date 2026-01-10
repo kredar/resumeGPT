@@ -11,15 +11,23 @@ const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const knowledgeBase = [
   {
     question: 'who is art?',
-    answer: "Artiom Kreimer is a seasoned product leader with nearly two decades of experience, specializing in leading cross-functional teams to develop digital products. His expertise centers on Data Analytics, Machine Learning, Artificial Intelligence, and Conversational AI. He enjoys utilizing these technologies to address customer challenges. As the Product Lead at Scotiabank, he spearheads product strategy and development, collaborating closely with his team to launch innovative products. Prior to Scotiabank, he was instrumental in developing Conversational AI and Chatbot Analytics platforms at Wysdom.AI. Artiom holds a Bachelor's degree in Communication Systems Engineering and has worked across various industries, including ASIC, Consumer Electronics, Telecom, Web and Mobile Apps, and Finance. He resides in Ontario, Canada, with his wife, two daughters, and a Hungarian Vizsla. Artiom is passionate about spending his free time with his family, engaging in outdoor activities such as hiking, running, and nature exploration. He is an avid reader and a lifelong learner. Artiom actively shares his insights and tips on his personal blog, The Art of Product and AI. He welcomes connections to explore potential collaborations, exchange insights, or discuss industry trends. Artiom is always eager to connect with like-minded professionals and contribute to the dynamic fields of technology and product management."
+    answer: "Artiom (Art) Kreimer is currently the Director of Product Management AI/ML at Guidepoint (since September 2024), where he leads the design and execution of AI-powered research capabilities, transforming how expert knowledge is synthesized into actionable insights. He's working on exciting projects including the AskGP AI Chatbot (an agentic RAG-based chatbot that analyzes expert interview data), Deep Research (a multi-agent orchestration framework), and an AI Agent Evaluation Framework for performance benchmarking. Art is a seasoned product leader with over a decade of experience leading cross-functional teams to bring digital products to life. His passion lies in Data Analytics, Machine Learning, Artificial Intelligence, and Conversational AI, and he truly enjoys using these technologies to solve customer problems. Before joining Guidepoint, Art was a Product Lead for Data & AI at Scotiabank (2021-2024), where he led the AI Innovation Squad and worked on groundbreaking projects like LLM-based chatbots and Android app enhancements. Prior to that, he was VP of Product and Analytics at Wysdom.AI (acquired by Calabrio). He has a Bachelor's degree in Communication Systems Engineering from Ben-Gurion University (graduated Magna Cum Laude) and has worked across various industries, including ASIC, Consumer Electronics, Telecom, web and mobile apps, Machine Learning and Conversational AI, and Finance. He lives in Ontario, Canada, with his wife, two daughters, and Hungarian Vizsla. He loves spending his free time with his family and enjoying outdoor activities like hiking, running, and exploring nature. He is also an avid reader and lifelong learner. He shares his thoughts and tips on his personal blog at https://www.artkreimer.com."
   },
   {
-    question: 'what is his educational background',
-    answer: "Education: Art earned his Bachelor's degree in Communication System Engineering from Ben-Gurion University in 2007, graduating Magna cum laude. He continues to broaden his knowledge through online courses and certifications."
+    question: 'current role',
+    answer: "Art is currently the Director of Product Management AI/ML at Guidepoint, a position he started in September 2024. In this role, he leads the design and execution of AI-powered research capabilities, transforming how expert knowledge is synthesized into actionable insights. He's working on cutting-edge projects including the AskGP AI Chatbot (an agentic RAG-based chatbot), Deep Research (a multi-agent orchestration framework), and an AI Agent Evaluation Framework. He also established an AI Product Roundtable to foster collaboration and knowledge sharing across teams."
+  },
+  {
+    question: 'guidepoint projects',
+    answer: "At Guidepoint, Art serves as Director of Product Management AI/ML. He directed development of the AskGP AI Chatbot, an agentic RAG-based chatbot that analyzes and synthesizes expert interview data, which improved trial-to-subscription conversion and drove a 25% increase in overall platform engagement. He also led the Deep Research project, a multi-agent orchestration framework that integrates internal expert data with external sources to enable automated, end-to-end research generation for clients. Additionally, he designed a comprehensive AI Agent Evaluation Framework for performance evaluation, quality benchmarking, and LLM capability comparisons, and established an AI Product Roundtable."
+  },
+  {
+    question: 'educational background',
+    answer: "Art earned his Bachelor's degree in Communication System Engineering from Ben-Gurion University, where he graduated Magna Cum Laude (2003-2007). He continues to broaden his knowledge through online courses and certifications."
   },
   {
     question: 'certificates',
-    answer: "Art is constantly learning by reading books and taking courses and specializations. He has certificates including: Advanced Product Management Certificate from the Product Faculty, Data Analytics from Google, Impactful Communications from IDEO U and a Deep Learning specialization certificate from Deeplearning.ai. Full list available on his LinkedIn."
+    answer: "Art is constantly learning by reading books and taking courses and specializations. He has certificates including Prompt Engineering for Developers (Deeplearning.AI, 2023), Large Language Models (Databricks, 2023), Communicating for Impact (IDEO U, 2023), Data Analytics (Google, 2022), Professional Scrum Product Owner I (scrum.org, 2022), Customer Experiences with Contact Center AI - Dialogflow CX and ES (Google, 2021), Advanced Product Management (Product Faculty, 2020), Deep Learning Specialization (Deeplearning.AI, 2019), Data Engineering, Big Data, and Machine Learning on GCP (Google, 2019), and more. Full list available on his LinkedIn at https://www.linkedin.com/in/artkreimer/."
   },
   {
     question: 'contact',
@@ -31,11 +39,11 @@ const knowledgeBase = [
   },
   {
     question: 'technical skills',
-    answer: "Art considers himself pretty technical. He understands client-server architecture, is familiar with iOS and Android development, understands how to read and write APIs documentation. He can use Postman to test/make an API call and he can write a SQL query to get the right data, manipulate it in Excel or use Pandas/NumPy. He can process unstructured text data using Spacy, Textblob and NLTK. He can also create bots using DialogFlow ES or CX. He is constantly learning and honing his technical skills."
+    answer: "Art considers himself pretty technical. He understands client-server architecture, is familiar with iOS and Android development, and understands how to read and write APIs documentation. He can use Postman to test/make an API call and write SQL queries to get the right data, manipulate it in Excel or use Pandas/NumPy to uncover deeper insights. He can process unstructured text data using Spacy, Textblob and NLTK. He is proficient with RAG (Retrieval Augmented Generation), NLP, Evals, Prompt Engineering, and GenAI technologies. He's experienced with tools like Git, Confluence, Jira, Figma, Python, SQL, Pandas, and Streamlit. He can also create bots using DialogFlow ES or CX. He is constantly learning and honing his technical skills."
   },
   {
     question: 'programming languages',
-    answer: "Right now, Art's main programming language is Python. But in the past, he worked with Java and C++. He also knows SQL, and is proficient with Microsoft Office Suite."
+    answer: "Right now, Art's main programming language is Python. But in the past, he worked with Java and C++. He also knows SQL, and is proficient with Microsoft Office Suite. Additionally, he has expertise in modern AI/ML technologies including RAG (Retrieval Augmented Generation), NLP, Evals, Prompt Engineering, and GenAI tools."
   },
   {
     question: 'languages spoken',
@@ -43,19 +51,39 @@ const knowledgeBase = [
   },
   {
     question: 'hobbies',
-    answer: "Artiom likes hiking, travelling, reading books, playing board games with friends and family. He constantly challenges himself: learning to play the guitar or running for long distances. But most of all he likes to spend time with his family."
+    answer: "Artiom likes hiking, travelling, reading books, playing board games with friends and family. He constantly challenges himself: learning to play the guitar (though he admits he still has room for improvement) or running for long distances - he is planning to run a half-marathon. But most of all he likes to spend time with his family."
   },
   {
     question: 'experience',
-    answer: "Since November 2021, Art has been serving as a Product Lead at Scotiabank. From 2017-2021 he was VP Product and Analytics at Wysdom.AI. Previously he held roles as Director Solutions Engineering at Wysdom.AI, Software QA team lead at Clickfree, System QA Analyst at TELUS, and ASIC Design Verification engineer at Freescale Semiconductor."
+    answer: "Art has over a decade of experience in product leadership. Since September 2024, he's been Director of Product Management AI/ML at Guidepoint, leading AI-powered research capabilities. From November 2021 to September 2024, he was Product Lead, Data & AI at Scotiabank, leading the AI Innovation Squad. From October 2017 to November 2021, he was VP Product and Analytics at Wysdom.AI (acquired by Calabrio). From October 2013 to October 2017, he was Director Solutions Engineering at Wysdom.AI. Earlier roles include Software QA Team Lead at Clickfree (2009-2013), System QA Analyst at TELUS (2009), and ASIC Design Verification Engineer at Freescale Semiconductor (2006-2008)."
+  },
+  {
+    question: 'scotiabank projects',
+    answer: "At Scotiabank (November 2021 - September 2024), Art was the Product Lead for Data & AI, leading the AI Innovation Squad. His major accomplishments include: developing an LLM-based Support Chatbot Prototype, directing the enhancement of the Android App (elevating its rating from 2.0 to 4.7 stars - the highest among the Big 5 Canadian banks), spearheading the Early Adopters Product for beta program enrollment, leading the decommissioning of the LiveChat web application (achieving millions in operational savings), collaborating on chatbot optimization (contributing to Scotiabot receiving the prestigious 2023 Digital Transformation Award), and defining a dual career track for product managers."
+  },
+  {
+    question: 'ai expertise',
+    answer: "Art is deeply experienced in AI/ML technologies. His expertise spans Large Language Models (LLMs), Natural Language Processing (NLP), Retrieval Augmented Generation (RAG), Prompt Engineering, GenAI, Conversational AI, and Machine Learning. He has practical experience building agentic RAG-based chatbots, multi-agent orchestration frameworks, and AI evaluation systems. He's completed specialized certifications in Prompt Engineering, LLMs, Deep Learning, and Dialogflow. He's worked on real-world AI projects including chatbot analytics platforms, LLM-based support chatbots, expert interview analysis systems, and automated research generation tools."
+  },
+  {
+    question: 'blog and publications',
+    answer: "Art has a personal blog at www.artkreimer.com where he writes about AI/ML, Product Management, and Leadership. His articles include '6 ways the role of a product manager is going to change in the next decade', 'AI Product Development: A Deep Dive into Key Considerations', 'Beyond the Buzz: AI primer for Product Managers', 'How to build a resume chatbot using the power of LLMs', 'NLP and Text Analytics using foundational LLMs', and more. He also has filed for patents with the USPTO, including methods for prioritizing rule creation for computer-assisted customer care. View his patent portfolio at https://patents.justia.com/inventor/artiom-kreimer."
   },
   {
     question: 'strengths',
-    answer: "Art's key strengths include analytical skills and adaptability. He possesses strong analytical skills that empower him to evaluate situations and formulate data-driven strategies. He excels in adaptability, an indispensable skill in fast-paced environments."
+    answer: "Art's key strengths include analytical skills and adaptability. He possesses strong analytical skills that empower him to evaluate situations and formulate data-driven strategies. He excels in adaptability, an indispensable skill in fast-paced environments. His attention to detail ensures high-quality work, and he combines technical expertise with customer empathy to drive innovation."
   },
   {
     question: 'leadership',
-    answer: "With over a decade of experience in managing and leading people, Art's leadership style is servant leadership. His primary role is to empower his team by eliminating obstacles, offering strategic guidance, and creating an environment where they can excel."
+    answer: "With over a decade of experience in managing and leading people, ranging from QA Team Leader to VP of Product and Analytics, and now Director of Product Management, Art's leadership style is servant leadership. His primary role is to empower his team by eliminating obstacles, offering strategic guidance, and creating an environment where they can excel. He is committed to guiding and mentoring each member of his team. He's currently a mentor in the Toast Champions Program (2024-2025) and has defined dual career tracks for product managers."
+  },
+  {
+    question: 'chatbot experience',
+    answer: "Art has extensive experience with chatbots. At Guidepoint, he directed development of the AskGP AI Chatbot (agentic RAG-based chatbot that drove 25% increase in platform engagement). At Scotiabank, he developed LLM-based support chatbot prototypes and optimized chatbots (contributing to the 2023 Digital Transformation Award). At Wysdom.AI, he led chatbot analytics tools that improved performance metrics by up to 90% and UI enhancements that reduced chatbot creation time by 80%. He designed the first Canadian Telecom Facebook chatbot that automated 15% of customer inquiries. He's proficient in DialogFlow ES and CX."
+  },
+  {
+    question: 'mentoring',
+    answer: "Yes, Art is actively involved in mentoring and coaching. He's currently a mentor in the Toast Champions Program (2024-2025). At Scotiabank, he provided mentoring to individual contributors and people leaders, and defined a dual career track for product managers including skills matrices and upskilling resources. He served as Director of IT for Silhouettes of York (2015-2021) and is an active member of Scotia Digital Toastmasters Club. If interested in mentoring opportunities, reach out via LinkedIn (linkedin.com/in/artkreimer) or email (art.kreimer@gmail.com)."
   }
 ];
 
