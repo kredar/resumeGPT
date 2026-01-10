@@ -6,15 +6,15 @@ interface SuggestedQuestionsProps {
 export default function SuggestedQuestions({ questions, onQuestionClick }: SuggestedQuestionsProps) {
   return (
     <div className="mb-4">
-      <p className="text-sm text-gray-600 mb-3 font-medium">
+      <p className="text-sm text-slate-400 mb-4 font-medium">
         What else would you like to know about Art?
       </p>
-      <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {questions.map((question, index) => (
           <button
             key={index}
             onClick={() => onQuestionClick(question)}
-            className="block w-full text-left px-4 py-3 bg-white hover:bg-blue-50 text-gray-700 rounded-xl border border-gray-200 transition-colors text-sm shadow-sm hover:shadow-md"
+            className="text-left px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl border border-slate-700 hover:border-slate-600 transition-all duration-200 text-sm"
           >
             {question}
           </button>

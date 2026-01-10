@@ -3,12 +3,14 @@ import { supabase } from './lib/supabase'
 import ChatMessage from './components/ChatMessage'
 import ChatInput from './components/ChatInput'
 import SuggestedQuestions from './components/SuggestedQuestions'
+import LandingPage from './components/LandingPage'
 import { Message, ChatResponse } from './types'
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId] = useState(() => crypto.randomUUID())
+  const [showLanding, setShowLanding] = useState(true)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
     "What is Art Kreimer's educational background?",
     "Can you outline Art Kreimer's professional experience?",
@@ -24,23 +26,6 @@ function App() {
     scrollToBottom()
   }, [messages])
 
-  useEffect(() => {
-    const welcomeMessage: Message = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: `Welcome! I'm **Art's ResumeGPT**, specialized in providing information about Art Kreimer's professional background and qualifications.
-
-Feel free to ask me questions such as:
-
-- What is Art Kreimer's educational background?
-- Can you outline Art Kreimer's professional experience?
-- What skills and expertise does Art Kreimer bring to the table?
-
-I'm here to assist you. What would you like to know?`
-    }
-    setMessages([welcomeMessage])
-  }, [])
-
   const storeConversation = async (userMessage: string, botMessage: string, answered: boolean) => {
     try {
       await supabase.from('conversations').insert({
@@ -55,6 +40,10 @@ I'm here to assist you. What would you like to know?`
   }
 
   const sendMessage = async (messageText: string) => {
+    if (showLanding) {
+      setShowLanding(false)
+    }
+
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -119,23 +108,39 @@ I'm here to assist you. What would you like to know?`
     }
   }
 
+  if (showLanding) {
+    return <LandingPage onSendMessage={sendMessage} />
+  }
+
   return (
-    <div className="h-screen flex flex-col">
-      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
-        <div className="max-w-4xl mx-auto px-6 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Art Kreimer's ResumeGPT
-          </h1>
-          <details className="mt-3">
-            <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-900 font-medium">
-              Disclaimer
-            </summary>
-            <p className="mt-2 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
-              This is a work in progress chatbot based on a large language model.
-              It can answer questions about Art Kreimer's professional background
-              and qualifications.
-            </p>
-          </details>
+    <div className="h-screen flex flex-col bg-slate-900">
+      <header className="bg-slate-800 border-b border-slate-700 shadow-sm flex-shrink-0">
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-700">
+              <svg
+                className="w-5 h-5 text-teal-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect x="8" y="8" width="8" height="8" rx="1" strokeWidth="2" />
+                <path d="M8 12h-2m10 0h2m-6-6v-2m0 16v-2" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h1 className="text-xl font-bold text-teal-400">
+              ResumeGPT
+            </h1>
+          </div>
+          <button
+            onClick={() => {
+              setShowLanding(true)
+              setMessages([])
+            }}
+            className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
+          >
+            Start Over
+          </button>
         </div>
       </header>
 
@@ -147,18 +152,18 @@ I'm here to assist you. What would you like to know?`
             ))}
             {isLoading && (
               <div className="flex justify-start mb-4">
-                <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-white border border-gray-200 shadow-sm">
+                <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-slate-800 border border-slate-700 shadow-sm">
                   <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-100" />
+                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-200" />
                   </div>
                 </div>
               </div>
             )}
           </div>
 
-          {!isLoading && suggestedQuestions.length > 0 && messages.length > 1 && (
+          {!isLoading && suggestedQuestions.length > 0 && messages.length > 0 && (
             <div className="mt-8">
               <SuggestedQuestions
                 questions={suggestedQuestions}
@@ -170,7 +175,7 @@ I'm here to assist you. What would you like to know?`
         </div>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 shadow-sm flex-shrink-0">
+      <footer className="bg-slate-800 border-t border-slate-700 shadow-sm flex-shrink-0">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <ChatInput onSendMessage={sendMessage} disabled={isLoading} />
         </div>
