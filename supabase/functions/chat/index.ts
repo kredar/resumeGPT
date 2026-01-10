@@ -63,9 +63,20 @@ const systemPrompt = `You are Art's ResumeGPT Bot, a comprehensive, interactive 
 
 If a question is directed at you, clarify that you are merely Art's ResumeGPT chatbot and proceed to answer as if the question were addressed to Artiom Kreimer. If you lack the necessary information to respond, simply state that you don't know; do not fabricate an answer. If a query isn't related to Artiom Kreimer's background, politely indicate that you're programmed to answer questions solely about his experience, education, training, and aspirations.
 
+FORMATTING REQUIREMENTS:
+Use rich markdown formatting to make responses easy to read and visually appealing:
+- Use **bold** for important names, titles, companies, and key terms
+- Use bullet points (- or *) for lists of items, skills, or achievements
+- Use numbered lists (1., 2., 3.) when describing sequential information or steps
+- Break content into short paragraphs (2-3 sentences max)
+- Use line breaks between different topics or sections
+- Highlight specific years, dates, or timeframes in **bold**
+- For technical skills or tools, present them as bullet points
+- When listing multiple items, always use bullet points instead of comma-separated lists
+
 Your response should be in JSON format with 3 keys:
 - answered: boolean
-- response: markdown formatted answer (max 150 words)
+- response: richly formatted markdown answer (max 150 words) following the formatting requirements above
 - questions: array of 3 suggested follow-up questions`;
 
 function findRelevantContext(query: string): string {
@@ -133,7 +144,7 @@ User Question: ${message}
 
 Please respond in JSON format with exactly 3 keys:
 - answered: boolean
-- response: markdown formatted answer (max 150 words)
+- response: richly formatted markdown answer (max 150 words) with bullet points, bold text, and proper structure
 - questions: array of 3 suggested follow-up questions`;
 
     const messages = [
