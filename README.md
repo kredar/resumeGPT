@@ -1,95 +1,144 @@
-# ResumeGPT - Art Kreimer's Resume bot
+# ResumeGPT - Art Kreimer's AI-Powered Resume Chatbot
+
+A modern, interactive chatbot application that answers questions about Art Kreimer's professional background, built with React, TypeScript, Vite, and Supabase.
 
 ## Overview
-This Streamlit application is an interactive chatbot showcasing your professional background and qualifications. Leveraging large language models (LLMs) and a Retrieval Augmented Generation (RAG) framework, it delivers accurate and context-aware answers based on your resume and other data stored in a CSV file. The chatbot utilizes a FAISS vector store for efficient information retrieval and the OpenAI GPT-3.5-turbo model for answer generation. Streamlit provides a user-friendly interface for seamless interaction.
+
+This application uses RAG (Retrieval Augmented Generation) with OpenAI's GPT-4 to provide accurate, context-aware responses about professional experience, skills, and qualifications. The chatbot is deployed as a serverless application using Supabase Edge Functions and can be hosted on Vercel.
 
 ## Features
 
-- **RAG-based:** Employs a Retrieval Augmented Generation approach, ensuring responses are both relevant and grounded in the information provided.
-- **Interactive Q&A:** Enables users to ask questions and receive informative answers directly derived from the CSV data.
-- **Conversation History:** Retains conversations in MongoDB Atlas for later review and analysis, enhancing user engagement.
-- **Knowledge Awareness:** Gracefully handles situations where the chatbot lacks the information to answer a question, ensuring a smooth user experience.
-- **Question Suggestions:** Offers prompts to guide users and encourage meaningful conversations, promoting deeper exploration of your qualifications.
+- **Modern React UI**: Clean, responsive design built with React, TypeScript, and Tailwind CSS
+- **Real-time Chat**: Interactive chat interface with suggested follow-up questions
+- **AI-Powered Responses**: Uses OpenAI GPT-4 for intelligent, contextual answers
+- **Conversation Storage**: All conversations are stored in Supabase for analytics
+- **Serverless Architecture**: Edge Functions handle chat logic, scalable and cost-effective
+- **Easy Deployment**: Ready to deploy on Vercel with zero configuration
 
-## Link to the Streamlit app
+## Tech Stack
 
-This is my ResumeGPT demo Wesbite : [https://art-career-bot.streamlit.app/](https://art-career-bot.streamlit.app/)
-
-## Link to the blog post 
-
-This is a detailed post about the logic behind this chatbot and explanations how it works: [www.artkreimer.com/](https://www.artkreimer.com/How-To-Build-Resume-Bot-powered-by-llm/)
-
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS
+- **Backend**: Supabase Edge Functions
+- **Database**: Supabase PostgreSQL
+- **AI**: OpenAI GPT-4
+- **Deployment**: Vercel
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Node.js 18 or higher
+- A Supabase account with a project
 - OpenAI API key
-- MongoDB Atlas account
-- Streamlit account to host the app
+- Vercel account (for deployment)
 
-## Installation
+## Local Development
 
-1. Fork my repository and change the name to your desired name
-2. Clone the repository:
+1. **Clone the repository**
 
-```
-git clone https://github.com/{username}/{yourGPT}.git && cd {yourGPT}
-```
-
-2. Create virtual env
-
-```
-python3 -m venv venv
-source venv/bin/activate
+```bash
+git clone https://github.com/yourusername/resumegpt.git
+cd resumegpt
 ```
 
-3. Install the required dependencies:
+2. **Install dependencies**
 
-```
-pip install -r requirements.txt
-```
-
-3. Update the following files:
-   * Replace all instance of the name `Art Kreimer` or `Art` with your name and nickname in the following files:
-     * `app.py`
-     * ``templates/template.json``
-   * Change the following in the `data` folder
-     * `about_me.csv` with relevant questions about you
-
-4. Add OPENAI_API_KEY key to your shell variables
-```
-export OPENAI_API_KEY="your_openai_api_key"
+```bash
+npm install
 ```
 
-## Usage
+3. **Set up environment variables**
 
-1. Run the Streamlit application:
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Update the `.env` file with your Supabase credentials:
 
 ```
-streamlit run app.py
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-2. The application will open in your default web browser. First time it will run a bit longer indexing the csv file and storing it in a FAISS vector store. 
-3. Ask questions about your background and qualifications, and the chatbot will provide relevant responses.
+## Customization
 
-## Publishing your app
+To customize this chatbot for your own resume:
 
-1. Once you commit all your files to **GitHub**, create an account in [**Streamlit.io** ](https://share.streamlit.io/)preferably with your GitHub account.
+1. **Update the knowledge base** in `supabase/functions/chat/index.ts`:
+   - Modify the `knowledgeBase` array with your own Q&A pairs
+   - Update references to "Art Kreimer" with your name
 
-2. Click on the `New app` option:
+2. **Update the system prompt** in the same file:
+   - Change the chatbot's personality and instructions
+   - Modify the response format if needed
 
-3. Input your `OPENAI_API_KEY`  and `mongodB_pass` using the **Advanced settings...** option
+3. **Customize the UI** in `src/App.tsx`:
+   - Update the welcome message
+   - Change the header title
+   - Modify the default suggested questions
 
-4. Click on **Deploy** button
+4. **Update branding**:
+   - Change the title in `index.html`
+   - Update the favicon
+   - Modify colors in `tailwind.config.js` or component styles
 
-### Note
+## Deployment
 
-You can also deploy the same on **[HuggingFace Spaces](https://huggingface.co/spaces)**. You can find more documentation on the same [here](https://huggingface.co/docs/hub/en/spaces-sdks-streamlit).
+### Deploy to Vercel
 
-## Configuration
+1. **Push your code to GitHub**
 
-- The application uses a FAISS index to store the CSV and PDF data embeddings. If the index file (`faiss_index`) does not exist, it will be created automatically and it will take several minutes to generate all embeddings. 
-- The CSV data file path is set in the `data_source` variable, and the PDF resume file path is set in the `pdf_source` variable.
+2. **Import your repository to Vercel**:
+   - Go to [vercel.com](https://vercel.com)
+   - Click "Add New Project"
+   - Import your GitHub repository
+
+3. **Configure environment variables** in Vercel:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anon key
+
+4. **Deploy**: Vercel will automatically build and deploy your application
+
+## Project Structure
+
+```
+resumegpt/
+├── src/
+│   ├── components/
+│   │   ├── ChatInput.tsx       # Message input component
+│   │   ├── ChatMessage.tsx     # Individual message display
+│   │   └── SuggestedQuestions.tsx  # Suggested questions UI
+│   ├── lib/
+│   │   └── supabase.ts         # Supabase client configuration
+│   ├── App.tsx                 # Main application component
+│   ├── main.tsx                # Application entry point
+│   ├── types.ts                # TypeScript type definitions
+│   └── index.css               # Global styles with Tailwind
+├── supabase/
+│   └── functions/
+│       └── chat/
+│           └── index.ts        # Edge Function for chat logic
+├── data/                       # Original data files (reference)
+├── index.html                  # HTML entry point
+├── vercel.json                 # Vercel configuration
+├── package.json                # Dependencies and scripts
+├── tailwind.config.js          # Tailwind CSS configuration
+├── tsconfig.json               # TypeScript configuration
+└── vite.config.ts              # Vite configuration
+```
+
+## Database Schema
+
+The application uses a single table for storing conversations:
+
+### conversations
+- `id` (uuid, primary key)
+- `conversation_id` (uuid) - Groups messages from same session
+- `user_message` (text) - User's question
+- `bot_message` (text) - Bot's response
+- `answered` (boolean) - Whether question was answered successfully
+- `created_at` (timestamptz) - Timestamp
 
 
 ## Acknowledgements
