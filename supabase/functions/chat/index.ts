@@ -119,14 +119,26 @@ serve(async (req: Request) => {
 
     const context = findRelevantContext(message);
 
+    const conversationMessages = conversationHistory.map((msg: any) => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    const userPrompt = `${systemPrompt}
+
+Context about Art Kreimer:
+${context}
+
+User Question: ${message}
+
+Please respond in JSON format with exactly 3 keys:
+- answered: boolean
+- response: markdown formatted answer (max 150 words)
+- questions: array of 3 suggested follow-up questions`;
+
     const messages = [
-      { role: 'system', content: systemPrompt },
-      { role: 'system', content: `Context:\n${context}` },
-      ...conversationHistory.map((msg: any) => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      { role: 'user', content: message }
+      ...conversationMessages,
+      { role: 'user', content: userPrompt }
     ];
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -136,10 +148,8 @@ serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: messages,
-        temperature: 0.0,
-        response_format: { type: 'json_object' }
+        model: 'o1-mini',
+        messages: messages
       }),
     });
 
