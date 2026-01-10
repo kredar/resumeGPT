@@ -3,9 +3,10 @@ import { useState, FormEvent, KeyboardEvent } from 'react'
 interface ChatInputProps {
   onSendMessage: (message: string) => void
   disabled?: boolean
+  isDarkMode: boolean
 }
 
-export default function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
+export default function ChatInput({ onSendMessage, disabled, isDarkMode }: ChatInputProps) {
   const [input, setInput] = useState('')
 
   const handleSubmit = (e: FormEvent) => {
@@ -33,7 +34,7 @@ export default function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
           onKeyDown={handleKeyDown}
           placeholder="Ask me about Art Kreimer..."
           disabled={disabled}
-          className="w-full px-6 py-4 bg-slate-700 border border-slate-600 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed pr-16"
+          className={`w-full px-6 py-4 ${isDarkMode ? 'bg-slate-700 border-slate-600 text-white placeholder-slate-400' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'} border rounded-2xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed pr-16`}
         />
         <button
           type="submit"
@@ -55,7 +56,7 @@ export default function ChatInput({ onSendMessage, disabled }: ChatInputProps) {
           </svg>
         </button>
       </form>
-      <p className="text-center text-xs text-slate-500 mt-3">
+      <p className={`text-center text-xs ${isDarkMode ? 'text-slate-500' : 'text-gray-500'} mt-3`}>
         Press Enter to send, Shift+Enter for new line
       </p>
     </div>

@@ -3,9 +3,10 @@ import { Message } from '../types'
 
 interface ChatMessageProps {
   message: Message
+  isDarkMode: boolean
 }
 
-export default function ChatMessage({ message }: ChatMessageProps) {
+export default function ChatMessage({ message, isDarkMode }: ChatMessageProps) {
   const isUser = message.role === 'user'
 
   return (
@@ -14,7 +15,9 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         className={`max-w-[80%] rounded-2xl px-6 py-4 shadow-sm ${
           isUser
             ? 'bg-teal-600 text-white'
-            : 'bg-slate-800 text-slate-100 border border-slate-700'
+            : isDarkMode
+              ? 'bg-slate-800 text-slate-100 border border-slate-700'
+              : 'bg-white text-gray-800 border border-gray-200'
         }`}
       >
         <ReactMarkdown
@@ -28,7 +31,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
             h1: ({children}) => <h1 className="text-xl font-bold mb-2">{children}</h1>,
             h2: ({children}) => <h2 className="text-lg font-bold mb-2">{children}</h2>,
             h3: ({children}) => <h3 className="text-base font-bold mb-2">{children}</h3>,
-            code: ({children}) => <code className={`px-1.5 py-0.5 rounded text-sm ${isUser ? 'bg-teal-700' : 'bg-slate-700 text-teal-400'}`}>{children}</code>,
+            code: ({children}) => <code className={`px-1.5 py-0.5 rounded text-sm ${isUser ? 'bg-teal-700' : isDarkMode ? 'bg-slate-700 text-teal-400' : 'bg-gray-100 text-teal-600'}`}>{children}</code>,
           }}
         >
           {message.content}

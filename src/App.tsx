@@ -11,12 +11,20 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [conversationId] = useState(() => crypto.randomUUID())
   const [showLanding, setShowLanding] = useState(true)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme')
+    return saved ? saved === 'dark' : true
+  })
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
     "What is Art Kreimer's educational background?",
     "Can you outline Art Kreimer's professional experience?",
     "What skills and expertise does Art Kreimer bring to the table?"
   ])
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    localStorage.setItem('theme', isDarkMode ? 'dark' : 'light')
+  }, [isDarkMode])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -109,15 +117,15 @@ function App() {
   }
 
   if (showLanding) {
-    return <LandingPage onSendMessage={sendMessage} />
+    return <LandingPage onSendMessage={sendMessage} isDarkMode={isDarkMode} onToggleTheme={() => setIsDarkMode(!isDarkMode)} />
   }
 
   return (
-    <div className="h-screen flex flex-col bg-slate-900">
-      <header className="bg-slate-800 border-b border-slate-700 shadow-sm flex-shrink-0">
+    <div className={`h-screen flex flex-col ${isDarkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+      <header className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-b shadow-sm flex-shrink-0`}>
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-slate-900 rounded-lg flex items-center justify-center border border-slate-700">
+            <div className={`w-10 h-10 ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-gray-100 border-gray-300'} rounded-lg flex items-center justify-center border`}>
               <svg
                 className="w-5 h-5 text-teal-400"
                 fill="none"
@@ -132,15 +140,32 @@ function App() {
               ResumeGPT
             </h1>
           </div>
-          <button
-            onClick={() => {
-              setShowLanding(true)
-              setMessages([])
-            }}
-            className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
-          >
-            Start Over
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-slate-700 text-slate-400 hover:text-slate-200' : 'hover:bg-gray-100 text-gray-600 hover:text-gray-900'}`}
+              aria-label="Toggle theme"
+            >
+              {isDarkMode ? (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setShowLanding(true)
+                setMessages([])
+              }}
+              className={`text-sm transition-colors ${isDarkMode ? 'text-slate-400 hover:text-slate-200' : 'text-gray-600 hover:text-gray-900'}`}
+            >
+              Start Over
+            </button>
+          </div>
         </div>
       </header>
 
@@ -148,15 +173,15 @@ function App() {
         <div className="max-w-4xl mx-auto w-full px-6 py-8 pb-32">
           <div className="space-y-4">
             {messages.map((message) => (
-              <ChatMessage key={message.id} message={message} />
+              <ChatMessage key={message.id} message={message} isDarkMode={isDarkMode} />
             ))}
             {isLoading && (
               <div className="flex justify-start mb-4">
-                <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-slate-800 border border-slate-700 shadow-sm">
+                <div className={`max-w-[80%] rounded-2xl px-6 py-4 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border shadow-sm`}>
                   <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-100" />
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce delay-200" />
+                    <div className={`w-2 h-2 ${isDarkMode ? 'bg-teal-400' : 'bg-teal-500'} rounded-full animate-bounce`} />
+                    <div className={`w-2 h-2 ${isDarkMode ? 'bg-teal-400' : 'bg-teal-500'} rounded-full animate-bounce delay-100`} />
+                    <div className={`w-2 h-2 ${isDarkMode ? 'bg-teal-400' : 'bg-teal-500'} rounded-full animate-bounce delay-200`} />
                   </div>
                 </div>
               </div>
@@ -168,6 +193,7 @@ function App() {
               <SuggestedQuestions
                 questions={suggestedQuestions}
                 onQuestionClick={sendMessage}
+                isDarkMode={isDarkMode}
               />
             </div>
           )}
@@ -175,9 +201,9 @@ function App() {
         </div>
       </main>
 
-      <footer className="bg-slate-800 border-t border-slate-700 shadow-sm flex-shrink-0">
+      <footer className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-t shadow-sm flex-shrink-0`}>
         <div className="max-w-4xl mx-auto px-6 py-6">
-          <ChatInput onSendMessage={sendMessage} disabled={isLoading} />
+          <ChatInput onSendMessage={sendMessage} disabled={isLoading} isDarkMode={isDarkMode} />
         </div>
       </footer>
     </div>
