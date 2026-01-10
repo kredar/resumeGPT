@@ -140,8 +140,8 @@ I'm here to assist you. What would you like to know?`
       </header>
 
       <main className="flex-1 overflow-y-auto">
-        <div className="max-w-4xl mx-auto w-full px-6 py-8">
-          <div className="space-y-4 mb-8">
+        <div className="max-w-4xl mx-auto w-full px-6 py-8 pb-32">
+          <div className="space-y-4">
             {messages.map((message) => (
               <ChatMessage key={message.id} message={message} />
             ))}
@@ -156,15 +156,17 @@ I'm here to assist you. What would you like to know?`
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
 
           {!isLoading && suggestedQuestions.length > 0 && messages.length > 1 && (
-            <SuggestedQuestions
-              questions={suggestedQuestions}
-              onQuestionClick={sendMessage}
-            />
+            <div className="mt-8">
+              <SuggestedQuestions
+                questions={suggestedQuestions}
+                onQuestionClick={sendMessage}
+              />
+            </div>
           )}
+          <div ref={messagesEndRef} />
         </div>
       </main>
 
