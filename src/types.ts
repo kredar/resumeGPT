@@ -9,5 +9,4 @@ export interface ChatResponse {
   answered: boolean
   response: string
   questions: string[]
-  responseId?: string
 }

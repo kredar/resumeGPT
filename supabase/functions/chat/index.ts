@@ -108,7 +108,7 @@ serve(async (req: Request) => {
       );
     }
 
-    const { message, previousResponseId } = await req.json();
+    const { message, conversationHistory = [] } = await req.json();
 
     if (!message) {
       return new Response(
@@ -119,7 +119,12 @@ serve(async (req: Request) => {
 
     const context = findRelevantContext(message);
 
-    const inputPrompt = `${systemPrompt}
+    const conversationMessages = conversationHistory.map((msg: any) => ({
+      role: msg.role,
+      content: msg.content
+    }));
+
+    const userPrompt = `${systemPrompt}
 
 Context about Art Kreimer:
 ${context}
@@ -131,28 +136,22 @@ Please respond in JSON format with exactly 3 keys:
 - response: markdown formatted answer (max 150 words)
 - questions: array of 3 suggested follow-up questions`;
 
-    const requestBody: any = {
-      model: 'gpt-5.2',
-      input: inputPrompt,
-      reasoning: {
-        effort: 'none'
-      },
-      text: {
-        verbosity: 'medium'
-      }
-    };
+    const messages = [
+      ...conversationMessages,
+      { role: 'user', content: userPrompt }
+    ];
 
-    if (previousResponseId) {
-      requestBody.previous_response_id = previousResponseId;
-    }
-
-    const response = await fetch('https://api.openai.com/v1/responses', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: messages,
+        response_format: { type: 'json_object' }
+      }),
     });
 
     if (!response.ok) {
@@ -168,15 +167,11 @@ Please respond in JSON format with exactly 3 keys:
     }
 
     const data = await response.json();
-    const responseId = data.id;
-
-    const textContent = data.output.find((item: any) => item.type === 'text');
-    const aiResponse = textContent ? textContent.content : '';
+    const aiResponse = data.choices[0].message.content;
 
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(aiResponse);
-      parsedResponse.responseId = responseId;
     } catch (e) {
       parsedResponse = {
         answered: false,
@@ -185,8 +180,7 @@ Please respond in JSON format with exactly 3 keys:
           "What is Art's professional experience?",
           "What projects has Art worked on?",
           "What are Art's career goals?"
-        ],
-        responseId: responseId
+        ]
       };
     }
 
