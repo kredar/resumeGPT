@@ -136,7 +136,7 @@ serve(async (req: Request) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o',
         messages: messages,
         temperature: 0.0,
         response_format: { type: 'json_object' }
