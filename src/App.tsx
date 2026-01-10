@@ -120,8 +120,8 @@ I'm here to assist you. What would you like to know?`
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
+    <div className="h-screen flex flex-col">
+      <header className="bg-white border-b border-gray-200 shadow-sm flex-shrink-0">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <h1 className="text-3xl font-bold text-gray-900">
             Art Kreimer's ResumeGPT
@@ -139,34 +139,36 @@ I'm here to assist you. What would you like to know?`
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
-        <div className="space-y-4 mb-8">
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
-          {isLoading && (
-            <div className="flex justify-start mb-4">
-              <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-white border border-gray-200 shadow-sm">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto w-full px-6 py-8">
+          <div className="space-y-4 mb-8">
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
+            {isLoading && (
+              <div className="flex justify-start mb-4">
+                <div className="max-w-[80%] rounded-2xl px-6 py-4 bg-white border border-gray-200 shadow-sm">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
 
-        {!isLoading && suggestedQuestions.length > 0 && messages.length > 1 && (
-          <SuggestedQuestions
-            questions={suggestedQuestions}
-            onQuestionClick={sendMessage}
-          />
-        )}
+          {!isLoading && suggestedQuestions.length > 0 && messages.length > 1 && (
+            <SuggestedQuestions
+              questions={suggestedQuestions}
+              onQuestionClick={sendMessage}
+            />
+          )}
+        </div>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 shadow-sm">
+      <footer className="bg-white border-t border-gray-200 shadow-sm flex-shrink-0">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <ChatInput onSendMessage={sendMessage} disabled={isLoading} />
         </div>
