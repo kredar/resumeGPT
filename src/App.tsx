@@ -13,7 +13,7 @@ function App() {
   const [showLanding, setShowLanding] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme')
-    return saved ? saved === 'dark' : true
+    return saved ? saved === 'dark' : false
   })
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([
     "What is Art Kreimer's educational background?",
