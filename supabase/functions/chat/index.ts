@@ -1,12 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 
 const knowledgeBase = [
   {
@@ -112,31 +110,31 @@ function findRelevantContext(query: string): string {
   const relevantItems = knowledgeBase.filter(item => {
     const lowerQuestion = item.question.toLowerCase();
     const lowerAnswer = item.answer.toLowerCase();
-    return lowerQuestion.includes(lowerQuery) || 
+    return lowerQuestion.includes(lowerQuery) ||
            lowerQuery.includes(lowerQuestion) ||
            lowerAnswer.includes(lowerQuery);
   });
-  
+
   if (relevantItems.length === 0) {
     return knowledgeBase.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
   }
-  
+
   return relevantItems.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
-    if (!OPENAI_API_KEY) {
-      console.error('OPENAI_API_KEY is not set');
+    if (!ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is not set');
       return new Response(
         JSON.stringify({
           error: 'Configuration error',
           answered: false,
-          response: "The chatbot is not fully configured. Please contact the administrator to set up the OpenAI API key.",
+          response: "The chatbot is not fully configured. Please contact the administrator to set up the API key.",
           questions: [
             "What is Art's professional experience?",
             "What skills does Art possess?",
@@ -158,67 +156,58 @@ serve(async (req: Request) => {
 
     const context = findRelevantContext(message);
 
-    const conversationMessages = conversationHistory.map((msg: any) => ({
-      role: msg.role,
-      content: msg.content
-    }));
-
-    const userPrompt = `${systemPrompt}
+    const contextualSystemPrompt = `${systemPrompt}
 
 Context about Art Kreimer:
 ${context}
 
-User Question: ${message}
+Respond ONLY with valid JSON matching the schema: {"answered": boolean, "response": string, "questions": string[]}`;
 
-Please respond in JSON format with exactly 3 keys:
-- answered: boolean
-- response: richly formatted markdown answer (max 150 words) with bullet points, bold text, and proper structure
-- questions: array of 3 suggested follow-up questions`;
+    const conversationMessages = conversationHistory.map((msg: { role: string; content: string }) => ({
+      role: msg.role,
+      content: msg.content
+    }));
 
     const messages = [
       ...conversationMessages,
-      { role: 'user', content: userPrompt }
+      { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o',
+        model: 'claude-opus-4-7',
+        max_tokens: 1024,
+        system: contextualSystemPrompt,
         messages: messages,
-        response_format: { type: 'json_object' }
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', response.status, error);
-
-      if (response.status === 401) {
-        throw new Error('Invalid OpenAI API key');
-      } else if (response.status === 429) {
-        throw new Error('OpenAI API rate limit exceeded');
-      }
-      throw new Error(`Failed to get response from OpenAI: ${response.status}`);
+      console.error('Anthropic API error:', response.status, error);
+      throw new Error(`Anthropic API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const aiResponse = data.content[0].text;
 
     let parsedResponse;
     try {
       parsedResponse = JSON.parse(aiResponse);
-    } catch (e) {
+    } catch (_e) {
       parsedResponse = {
-        answered: false,
-        response: "Hmm... Something is not right. I'm experiencing technical difficulties. Try asking your question again or ask another question about Art Kreimer's professional background and qualifications. Thank you for your understanding.",
+        answered: true,
+        response: aiResponse,
         questions: [
           "What is Art's professional experience?",
           "What projects has Art worked on?",
-          "What are Art's career goals?"
+          "What are Art's technical skills?"
         ]
       };
     }
@@ -229,9 +218,6 @@ Please respond in JSON format with exactly 3 keys:
     );
   } catch (error) {
     console.error('Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Error details:', errorMessage);
-
     return new Response(
       JSON.stringify({
         error: 'Internal server error',
