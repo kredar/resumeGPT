@@ -124,7 +124,13 @@ function App() {
     <div className={`h-screen flex flex-col ${isDarkMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
       <header className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-b shadow-sm flex-shrink-0`}>
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setShowLanding(true)
+              setMessages([])
+            }}
+            className="flex items-center gap-3 cursor-pointer"
+          >
             <div className={`w-10 h-10 ${isDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-gray-100 border-gray-300'} rounded-lg flex items-center justify-center border`}>
               <svg
                 className="w-5 h-5 text-teal-400"
@@ -139,7 +145,7 @@ function App() {
             <h1 className="text-xl font-bold text-teal-400">
               ResumeGPT
             </h1>
-          </div>
+          </button>
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsDarkMode(!isDarkMode)}
