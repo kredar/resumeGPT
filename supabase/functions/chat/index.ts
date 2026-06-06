@@ -82,6 +82,10 @@ const knowledgeBase = [
   {
     question: 'mentoring',
     answer: "Yes, Art is actively involved in mentoring and coaching. He's currently a mentor in the Toast Champions Program (2024-2025). At Scotiabank, he provided mentoring to individual contributors and people leaders, and defined a dual career track for product managers including skills matrices and upskilling resources. He served as Director of IT for Silhouettes of York (2015-2021) and is an active member of Scotia Digital Toastmasters Club. If interested in mentoring opportunities, reach out via LinkedIn (linkedin.com/in/artkreimer) or email (art.kreimer@gmail.com)."
+  },
+  {
+    question: 'side projects personal projects',
+    answer: "Art builds side projects at the intersection of AI, product management, and developer tools. **ResumeGPT** — instead of a static resume, he built a conversational AI assistant (this chatbot!) that answers questions about his professional background, skills, and expertise. Built with LangChain, Retrieval Augmented Generation (RAG), GPT-3.5, and Streamlit. Try it at artkreimer.com/resume/. He also wrote a blog post on how he built it. **Lenny's Daily** — a web app and Chrome extension built on 300+ Lenny's Newsletter posts and podcast transcripts, created during Lenny's Buildathon. Every time you open a new tab, you get a daily insight from Lenny's content. Built using DeepSeek, Claude Code, and Replit. Available at lennys-daily.replit.app and as a Chrome extension on the Chrome Web Store."
   }
 ];
 
