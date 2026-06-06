@@ -182,7 +182,7 @@ function App() {
               <ChatMessage key={message.id} message={message} isDarkMode={isDarkMode} />
             ))}
             {isLoading && (
-              <div className="flex justify-start mb-4">
+              <div className="flex justify-start mb-4 message-animate">
                 <div className={`max-w-[80%] rounded-2xl px-6 py-4 ${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border shadow-sm`}>
                   <div className="flex space-x-2">
                     <div className={`w-2 h-2 ${isDarkMode ? 'bg-teal-400' : 'bg-teal-500'} rounded-full animate-bounce`} />

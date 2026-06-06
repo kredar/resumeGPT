@@ -10,7 +10,7 @@ export default function ChatMessage({ message, isDarkMode }: ChatMessageProps) {
   const isUser = message.role === 'user'
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 message-animate`}>
       <div
         className={`max-w-[80%] rounded-2xl px-6 py-4 shadow-sm ${
           isUser
