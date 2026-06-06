@@ -65,7 +65,7 @@ const knowledgeBase = [
   },
   {
     question: 'blog and publications',
-    answer: "Art has a personal blog at www.artkreimer.com where he writes about AI/ML, Product Management, and Leadership. His articles include '6 ways the role of a product manager is going to change in the next decade', 'AI Product Development: A Deep Dive into Key Considerations', 'Beyond the Buzz: AI primer for Product Managers', 'How to build a resume chatbot using the power of LLMs', 'NLP and Text Analytics using foundational LLMs', and more. He also has filed for patents with the USPTO, including methods for prioritizing rule creation for computer-assisted customer care. View his patent portfolio at https://patents.justia.com/inventor/artiom-kreimer."
+    answer: "Art has a personal blog at www.artkreimer.com — branded 'The Art of Product and AI' — where he writes about AI/ML, Product Management, and Leadership. His latest articles include 'The Role of a Product Manager in the AI Era' (reflecting on his predictions about how AI changes the PM role), 'Success and Happiness — Two Sides of the Same Coin?', '6 Ways the Role of a Product Manager Is Going to Change', 'Beyond the Buzz: AI Primer for Product Managers', 'How to Build a Resume Chatbot Using the Power of LLMs', 'NLP and Text Analytics using Foundational LLMs', and 'Humans and AI: Balancing AI Innovation with Human Skills'. He also has filed for patents with the USPTO, including methods for prioritizing rule creation for computer-assisted customer care. View his patent portfolio at https://patents.justia.com/inventor/artiom-kreimer."
   },
   {
     question: 'strengths',
