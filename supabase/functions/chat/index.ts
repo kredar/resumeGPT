@@ -4,7 +4,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 
-const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
 
 const knowledgeBase = [
   {
@@ -128,8 +128,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    if (!ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is not set');
+    if (!DEEPSEEK_API_KEY) {
+      console.error('DEEPSEEK_API_KEY is not set');
       return new Response(
         JSON.stringify({
           error: 'Configuration error',
@@ -169,33 +169,33 @@ Respond ONLY with valid JSON matching the schema: {"answered": boolean, "respons
     }));
 
     const messages = [
+      { role: 'system', content: contextualSystemPrompt },
       ...conversationMessages,
       { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-opus-4-7',
+        model: 'deepseek-v4-pro',
         max_tokens: 1024,
-        system: contextualSystemPrompt,
         messages: messages,
+        response_format: { type: 'json_object' },
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Anthropic API error:', response.status, error);
-      throw new Error(`Anthropic API error: ${response.status}`);
+      console.error('DeepSeek API error:', response.status, error);
+      throw new Error(`DeepSeek API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.content[0].text;
+    const aiResponse = data.choices[0].message.content;
 
     let parsedResponse;
     try {
