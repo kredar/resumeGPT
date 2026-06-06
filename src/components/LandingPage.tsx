@@ -6,12 +6,11 @@ interface LandingPageProps {
 
 export default function LandingPage({ onSendMessage, isDarkMode, onToggleTheme }: LandingPageProps) {
   const categories = [
-    { icon: '💼', label: 'Professional Experience' },
-    { icon: '🎓', label: 'Education & Certifications' },
-    { icon: '</>', label: 'Technical Skills' },
+    { icon: '💼', label: 'Professional Experience', query: "What is Art's professional experience?" },
+    { icon: '🎓', label: 'Education & Certifications', query: "Tell me about Art's education and certifications" },
+    { icon: '</>', label: 'Technical Skills', query: "What are Art's technical skills?" },
+    { icon: '💬', label: 'Personal Interests', query: "What are Art's personal interests and hobbies?" },
   ]
-
-  const secondaryCategory = { icon: '💬', label: 'Personal Interests' }
 
   const suggestedQuestions = [
     'Who is Art Kreimer?',
@@ -70,18 +69,14 @@ export default function LandingPage({ onSendMessage, isDarkMode, onToggleTheme }
               {categories.map((category, index) => (
                 <button
                   key={index}
-                  className={`px-5 py-2.5 ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-slate-300' : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300 text-gray-700'} border rounded-full text-sm transition-all duration-200 flex items-center gap-2`}
+                  onClick={() => onSendMessage(category.query)}
+                  className={`px-5 py-2.5 ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-slate-300' : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300 text-gray-700'} border rounded-full text-sm transition-all duration-200 flex items-center gap-2 cursor-pointer`}
                 >
                   <span className="text-base">{category.icon}</span>
                   <span>{category.label}</span>
                 </button>
               ))}
             </div>
-
-            <button className={`px-5 py-2.5 ${isDarkMode ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 hover:border-slate-600 text-slate-300' : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300 text-gray-700'} border rounded-full text-sm transition-all duration-200 flex items-center gap-2`}>
-              <span className="text-base">{secondaryCategory.icon}</span>
-              <span>{secondaryCategory.label}</span>
-            </button>
 
             <div className="pt-8 w-full">
               <p className={`${isDarkMode ? 'text-slate-400' : 'text-gray-600'} text-sm mb-6`}>
