@@ -181,7 +181,7 @@ Respond ONLY with valid JSON matching the schema: {"answered": boolean, "respons
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek-v4-pro',
+        model: 'deepseek-v4-flash',
         max_tokens: 1024,
         messages: messages,
         response_format: { type: 'json_object' },
