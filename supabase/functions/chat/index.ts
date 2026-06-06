@@ -167,10 +167,15 @@ ${context}
 
 Respond ONLY with valid JSON matching the schema: {"answered": boolean, "response": string, "questions": string[]}`;
 
-    const conversationMessages = conversationHistory.map((msg: { role: string; content: string }) => ({
-      role: msg.role,
-      content: msg.content
-    }));
+    const conversationMessages = conversationHistory.map((msg: { role: string; content: string }) => {
+      if (msg.role === 'assistant') {
+        return {
+          role: 'assistant',
+          content: JSON.stringify({ answered: true, response: msg.content, questions: [] })
+        };
+      }
+      return { role: msg.role, content: msg.content };
+    });
 
     const messages = [
       { role: 'system', content: contextualSystemPrompt },
