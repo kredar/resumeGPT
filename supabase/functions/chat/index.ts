@@ -89,6 +89,8 @@ const knowledgeBase = [
   }
 ];
 
+const META_DELIMITER = '\n<<<META>>>\n';
+
 const systemPrompt = `You are Art's ResumeGPT Bot, a comprehensive, interactive resource for exploring Artiom (Art) Kreimer's background, skills, and expertise. Be polite and provide answers based on the provided context only. Use only the provided data and not prior knowledge.
 
 If a question is directed at you, clarify that you are merely Art's ResumeGPT chatbot and proceed to answer as if the question were addressed to Artiom Kreimer. If you lack the necessary information to respond, simply state that you don't know; do not fabricate an answer. If a query isn't related to Artiom Kreimer's background, politely indicate that you're programmed to answer questions solely about his experience, education, training, and aspirations.
@@ -104,10 +106,19 @@ Use rich markdown formatting to make responses easy to read and visually appeali
 - For technical skills or tools, present them as bullet points
 - When listing multiple items, always use bullet points instead of comma-separated lists
 
-Your response should be in JSON format with 3 keys:
-- answered: boolean
-- response: richly formatted markdown answer (max 150 words) following the formatting requirements above
-- questions: array of 3 suggested follow-up questions`;
+Your response MUST have exactly two parts separated by the delimiter <<<META>>>:
+
+PART 1 (before <<<META>>>): Your richly formatted markdown answer (max 150 words).
+
+<<<META>>>
+PART 2 (after <<<META>>>): A single line of valid JSON with this exact schema:
+{"answered": <true if question is about Art Kreimer, false otherwise>, "questions": ["follow-up question 1", "follow-up question 2", "follow-up question 3"]}
+
+Example:
+Art Kreimer is a **Director of Product Management AI/ML** at Guidepoint...
+
+<<<META>>>
+{"answered": true, "questions": ["What is Art's current role?", "What projects has he worked on?", "What are his technical skills?"]}`;
 
 function findRelevantContext(query: string): string {
   const lowerQuery = query.toLowerCase();
@@ -126,6 +137,12 @@ function findRelevantContext(query: string): string {
   return relevantItems.map(item => `Q: ${item.question}\nA: ${item.answer}`).join('\n\n');
 }
 
+const DEFAULT_QUESTIONS = [
+  "What is Art's professional experience?",
+  "What are Art's technical skills?",
+  "How can I contact Art?"
+];
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { status: 200, headers: corsHeaders });
@@ -134,19 +151,18 @@ Deno.serve(async (req: Request) => {
   try {
     if (!DEEPSEEK_API_KEY) {
       console.error('DEEPSEEK_API_KEY is not set');
-      return new Response(
-        JSON.stringify({
-          error: 'Configuration error',
-          answered: false,
-          response: "The chatbot is not fully configured. Please contact the administrator to set up the API key.",
-          questions: [
-            "What is Art's professional experience?",
-            "What skills does Art possess?",
-            "How can I contact Art?"
-          ]
-        }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      const errorStream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', text: "The chatbot is not fully configured. Please contact the administrator." })}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', answered: false, questions: DEFAULT_QUESTIONS })}\n\n`));
+          controller.close();
+        }
+      });
+      return new Response(errorStream, {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+      });
     }
 
     const { message, conversationHistory = [] } = await req.json();
@@ -163,19 +179,12 @@ Deno.serve(async (req: Request) => {
     const contextualSystemPrompt = `${systemPrompt}
 
 Context about Art Kreimer:
-${context}
+${context}`;
 
-Respond ONLY with valid JSON matching the schema: {"answered": boolean, "response": string, "questions": string[]}`;
-
-    const conversationMessages = conversationHistory.map((msg: { role: string; content: string }) => {
-      if (msg.role === 'assistant') {
-        return {
-          role: 'assistant',
-          content: JSON.stringify({ answered: true, response: msg.content, questions: [] })
-        };
-      }
-      return { role: msg.role, content: msg.content };
-    });
+    const conversationMessages = conversationHistory.map((msg: { role: string; content: string }) => ({
+      role: msg.role,
+      content: msg.content
+    }));
 
     const messages = [
       { role: 'system', content: contextualSystemPrompt },
@@ -183,7 +192,7 @@ Respond ONLY with valid JSON matching the schema: {"answered": boolean, "respons
       { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const deepseekResponse = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
@@ -192,53 +201,137 @@ Respond ONLY with valid JSON matching the schema: {"answered": boolean, "respons
       body: JSON.stringify({
         model: 'deepseek-v4-flash',
         max_tokens: 1024,
-        messages: messages,
-        response_format: { type: 'json_object' },
+        messages,
+        stream: true,
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('DeepSeek API error:', response.status, error);
-      throw new Error(`DeepSeek API error: ${response.status}`);
+    if (!deepseekResponse.ok) {
+      const error = await deepseekResponse.text();
+      console.error('DeepSeek API error:', deepseekResponse.status, error);
+      throw new Error(`DeepSeek API error: ${deepseekResponse.status}`);
     }
 
-    const data = await response.json();
-    const aiResponse = data.choices[0].message.content;
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const encoder = new TextEncoder();
 
-    let parsedResponse;
-    try {
-      parsedResponse = JSON.parse(aiResponse);
-    } catch (_e) {
-      parsedResponse = {
-        answered: true,
-        response: aiResponse,
-        questions: [
-          "What is Art's professional experience?",
-          "What projects has Art worked on?",
-          "What are Art's technical skills?"
-        ]
+    // Process DeepSeek SSE stream in the background
+    (async () => {
+      // contentBuffer holds chars we haven't safely flushed yet (watching for delimiter)
+      let contentBuffer = '';
+      let metaContent = '';
+      let delimiterFound = false;
+      // Keep at least this many chars in buffer to detect delimiter spanning chunks
+      const SAFE_LEN = META_DELIMITER.length - 1;
+
+      const flushText = async (text: string) => {
+        if (text) {
+          await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'content', text })}\n\n`));
+        }
       };
-    }
 
-    return new Response(
-      JSON.stringify(parsedResponse),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+      try {
+        const reader = deepseekResponse.body!.getReader();
+        const decoder = new TextDecoder();
+        let sseBuffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split('\n');
+          sseBuffer = lines.pop() ?? '';
+
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              const text: string = parsed.choices?.[0]?.delta?.content ?? '';
+              if (!text) continue;
+
+              if (delimiterFound) {
+                metaContent += text;
+              } else {
+                contentBuffer += text;
+                const delimIdx = contentBuffer.indexOf(META_DELIMITER);
+                if (delimIdx !== -1) {
+                  delimiterFound = true;
+                  const preDelim = contentBuffer.slice(0, delimIdx);
+                  metaContent = contentBuffer.slice(delimIdx + META_DELIMITER.length);
+                  contentBuffer = '';
+                  await flushText(preDelim);
+                } else {
+                  // Flush only the portion that can't be the start of the delimiter
+                  const flushLen = Math.max(0, contentBuffer.length - SAFE_LEN);
+                  if (flushLen > 0) {
+                    await flushText(contentBuffer.slice(0, flushLen));
+                    contentBuffer = contentBuffer.slice(flushLen);
+                  }
+                }
+              }
+            } catch {
+              // skip malformed SSE lines
+            }
+          }
+        }
+
+        // Flush any remaining content buffer
+        if (!delimiterFound) {
+          const delimIdx = contentBuffer.indexOf(META_DELIMITER);
+          if (delimIdx !== -1) {
+            metaContent = contentBuffer.slice(delimIdx + META_DELIMITER.length);
+            await flushText(contentBuffer.slice(0, delimIdx));
+          } else {
+            await flushText(contentBuffer);
+          }
+        }
+
+        // Parse metadata
+        let answered = true;
+        let questions = DEFAULT_QUESTIONS;
+        try {
+          const parsed = JSON.parse(metaContent.trim());
+          answered = parsed.answered ?? true;
+          questions = parsed.questions ?? DEFAULT_QUESTIONS;
+        } catch {
+          // use defaults
+        }
+
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'done', answered, questions })}\n\n`));
+      } catch (e) {
+        console.error('Stream processing error:', e);
+        await writer.write(encoder.encode(`data: ${JSON.stringify({ type: 'error' })}\n\n`));
+      } finally {
+        await writer.close();
+      }
+    })();
+
+    return new Response(readable, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no',
+      },
+    });
   } catch (error) {
     console.error('Error:', error);
-    return new Response(
-      JSON.stringify({
-        error: 'Internal server error',
-        answered: false,
-        response: "I'm experiencing technical difficulties. Please try again later.",
-        questions: [
-          "What is Art's professional experience?",
-          "What skills does Art possess?",
-          "How can I contact Art?"
-        ]
-      }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const errorStream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder();
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', text: "I'm experiencing technical difficulties. Please try again later." })}\n\n`));
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'done', answered: false, questions: DEFAULT_QUESTIONS })}\n\n`));
+        controller.close();
+      }
+    });
+    return new Response(errorStream, {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+    });
   }
 });

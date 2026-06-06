@@ -4,11 +4,14 @@ import ChatMessage from './components/ChatMessage'
 import ChatInput from './components/ChatInput'
 import SuggestedQuestions from './components/SuggestedQuestions'
 import LandingPage from './components/LandingPage'
-import { Message, ChatResponse } from './types'
+import { Message } from './types'
+
+const FALLBACK_MESSAGE = `Unfortunately, I can't answer this question. My capabilities are limited to providing information about Art Kreimer's professional background and qualifications. If you have other inquiries, I recommend reaching out to Art on [LinkedIn](https://www.linkedin.com/in/artkreimer/). I can answer questions like:\n- What is Art Kreimer's educational background?\n- Can you list Art Kreimer's professional experience?\n- What skills does Art Kreimer possess?`
 
 function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isStreaming, setIsStreaming] = useState(false)
   const [conversationId] = useState(() => crypto.randomUUID())
   const [showLanding, setShowLanding] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -48,9 +51,7 @@ function App() {
   }
 
   const sendMessage = async (messageText: string) => {
-    if (showLanding) {
-      setShowLanding(false)
-    }
+    if (showLanding) setShowLanding(false)
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -60,6 +61,10 @@ function App() {
 
     setMessages(prev => [...prev, userMessage])
     setIsLoading(true)
+
+    const assistantId = crypto.randomUUID()
+    let assistantContent = ''
+    let firstChunk = true
 
     try {
       const conversationHistory = messages.map(msg => ({
@@ -75,44 +80,84 @@ function App() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
           },
-          body: JSON.stringify({
-            message: messageText,
-            conversationHistory
-          })
+          body: JSON.stringify({ message: messageText, conversationHistory })
         }
       )
 
-      if (!response.ok) {
-        throw new Error('Failed to get response')
+      if (!response.ok) throw new Error('Failed to get response')
+      if (!response.body) throw new Error('No response body')
+
+      setIsStreaming(true)
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let sseBuffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        sseBuffer += decoder.decode(value, { stream: true })
+        const blocks = sseBuffer.split('\n\n')
+        sseBuffer = blocks.pop() ?? ''
+
+        for (const block of blocks) {
+          for (const line of block.split('\n')) {
+            if (!line.startsWith('data: ')) continue
+            let event: { type: string; text?: string; answered?: boolean; questions?: string[] }
+            try {
+              event = JSON.parse(line.slice(6))
+            } catch {
+              continue
+            }
+
+            if (event.type === 'content' && event.text) {
+              if (firstChunk) {
+                firstChunk = false
+                setIsLoading(false)
+                assistantContent = event.text
+                setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: assistantContent }])
+              } else {
+                assistantContent += event.text
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantId ? { ...m, content: assistantContent } : m
+                ))
+              }
+            } else if (event.type === 'done') {
+              const answered = event.answered ?? true
+              const questions = event.questions ?? []
+              setSuggestedQuestions(questions)
+
+              if (!answered) {
+                assistantContent = FALLBACK_MESSAGE
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantId ? { ...m, content: FALLBACK_MESSAGE } : m
+                ))
+              }
+
+              await storeConversation(messageText, assistantContent, answered)
+            } else if (event.type === 'error') {
+              throw new Error('Stream error from server')
+            }
+          }
+        }
       }
-
-      const data: ChatResponse = await response.json()
-
-      let fullResponse = data.response
-      if (!data.answered || data.response.includes("I am tuned to only answer questions")) {
-        fullResponse = `Unfortunately, I can't answer this question. My capabilities are limited to providing information about Art Kreimer's professional background and qualifications. If you have other inquiries, I recommend reaching out to Art on [LinkedIn](https://www.linkedin.com/in/artkreimer/). I can answer questions like:\n- What is Art Kreimer's educational background?\n- Can you list Art Kreimer's professional experience?\n- What skills does Art Kreimer possess?`
-      }
-
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: fullResponse
-      }
-
-      setMessages(prev => [...prev, assistantMessage])
-      setSuggestedQuestions(data.questions || [])
-
-      await storeConversation(messageText, fullResponse, data.answered)
     } catch (error) {
       console.error('Error sending message:', error)
-      const errorMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: "I'm sorry, I'm experiencing technical difficulties. Please try again later."
-      }
-      setMessages(prev => [...prev, errorMessage])
+      setMessages(prev => {
+        const hasAssistant = prev.some(m => m.id === assistantId)
+        const errorMsg: Message = {
+          id: assistantId,
+          role: 'assistant',
+          content: "I'm sorry, I'm experiencing technical difficulties. Please try again later."
+        }
+        return hasAssistant
+          ? prev.map(m => m.id === assistantId ? errorMsg : m)
+          : [...prev, errorMsg]
+      })
     } finally {
       setIsLoading(false)
+      setIsStreaming(false)
     }
   }
 
@@ -194,7 +239,7 @@ function App() {
             )}
           </div>
 
-          {!isLoading && suggestedQuestions.length > 0 && messages.length > 0 && (
+          {!isLoading && !isStreaming && suggestedQuestions.length > 0 && messages.length > 0 && (
             <div className="mt-8">
               <SuggestedQuestions
                 questions={suggestedQuestions}
@@ -209,7 +254,7 @@ function App() {
 
       <footer className={`${isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border-t shadow-sm flex-shrink-0`}>
         <div className="max-w-4xl mx-auto px-6 py-6">
-          <ChatInput onSendMessage={sendMessage} disabled={isLoading} isDarkMode={isDarkMode} />
+          <ChatInput onSendMessage={sendMessage} disabled={isLoading || isStreaming} isDarkMode={isDarkMode} />
         </div>
       </footer>
     </div>
